@@ -1,0 +1,15 @@
+credentials:
+  usernames:
+    aki:
+      project:
+      - c
+      - d
+    kjy:
+      project:
+      - a
+      - b
+      - c
+      - kk
+    zs:
+      project:
+      - d

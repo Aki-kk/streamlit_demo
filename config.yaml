@@ -1,0 +1,24 @@
+credentials:
+  usernames:
+    kjy:
+      email: 15801386755@163.com
+      name: Jingyi Kang
+      password: 123
+      level: 1
+    aki:
+      email: 15801386755@163.com
+      name: Aki
+      password: 456
+      level: 2
+    zs:
+      email: 15801386755@163.com
+      name: Zhang san
+      password: 789
+      level: 3
+cookie:
+  expiry_days: 30
+  key: some_signature_key
+  name: some_cookie_name
+preauthorized:
+  emails:
+  - 123@111.com
