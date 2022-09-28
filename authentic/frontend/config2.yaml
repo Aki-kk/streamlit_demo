@@ -10,6 +10,7 @@ credentials:
       - b
       - c
       - kk
+      - kkkk
     zs:
       project:
       - d
