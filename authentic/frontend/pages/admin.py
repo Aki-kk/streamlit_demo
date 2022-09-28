@@ -55,7 +55,7 @@ class Admin:
                     if name not in self.project:
                         self.config['credentials']['usernames'][self.username] = {'project': self.project+list(name.split())}
                         self.project = self.project+list(name.split())
-                        with open("E:/ws/project1/authentic/frontend/config2.yaml", "w", encoding="utf-8") as file:
+                        with open("./authentic/frontend/config2.yaml", "w", encoding="utf-8") as file:
                             yaml.dump(self.config, file)
                     else:
                         st.error('文件名不能重复！')
