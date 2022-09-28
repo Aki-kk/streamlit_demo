@@ -1,20 +1,22 @@
 import streamlit as st
-import streamlit_authenticator as stauth
+import frontend.authenticator as stauth
 import yaml
 import os
 from frontend.pages.admin import Admin
 import frontend.pages.FAE as FAE
 import frontend.pages.user as user
+from frontend.pages.super import Super
 from yaml import SafeLoader
 
 # 界面设置
 st.set_page_config(
     page_title="Demo",
-    page_icon="🌼",
+    page_icon="🌸",
+    layout="wide"
 )
 # 当前文件上一级文件夹的绝对路径
 path = os.path.abspath('')
-with open('./config.yaml') as file:
+with open('E:/ws/project1/config.yaml') as file:
     config = yaml.load(file, Loader=SafeLoader)
 
 # Creating the authenticator object
@@ -27,7 +29,6 @@ authenticator = stauth.Authenticate(
 )
 
 name, authentication_status, username = authenticator.login('Login', 'main')
-
 
 if st.session_state["authentication_status"]:
     level = authenticator.credentials['usernames'][username]['level']
@@ -43,6 +44,9 @@ if st.session_state["authentication_status"]:
         FAE.setup(username)
     if level == 3:
         user.setup(username)
+    if level == 4:
+        super = Super()
+        super.setup()
 
 
 

@@ -1,0 +1,22 @@
+Project:
+  name:
+    a:
+      loss: 0
+      test_acc: 0
+      val_acc: 0.98
+    aa:
+      loss: 0
+      test_acc: 0
+      val_acc: 0
+    b:
+      loss: 0
+      test_acc: 0
+      val_acc: 0.9
+    bb:
+      loss: 0
+      test_acc: 0
+      val_acc: 0
+    c:
+      loss: 0
+      test_acc: 0
+      val_acc: 0
