@@ -1,6 +1,7 @@
 import streamlit as st
 import streamlit_authenticator as stauth
 import yaml
+import os
 from frontend.pages.admin import Admin
 import frontend.pages.FAE as FAE
 import frontend.pages.user as user
@@ -11,8 +12,9 @@ st.set_page_config(
     page_title="Demo",
     page_icon="🌼",
 )
-
-with open('E:/ws/project1/config.yaml') as file:
+# 当前文件上一级文件夹的绝对路径
+path = os.path.abspath('')
+with open('./config.yaml') as file:
     config = yaml.load(file, Loader=SafeLoader)
 
 # Creating the authenticator object

@@ -1,3 +1,4 @@
+import os
 import time
 
 import pandas as pd
@@ -13,7 +14,8 @@ train_begin = 0
 class Admin:
     def __init__(self, username: str):
         self.disable = False    # button禁用标志位
-        with open('E:/ws/project1/authentic/frontend/config2.yaml') as file:
+        path = os.path.abspath('')
+        with open('./authentic/frontend/config2.yaml') as file:
             self.config = yaml.load(file, Loader=SafeLoader)
             self.credentials = self.config['credentials']
         self.credentials['usernames'] = {key.lower(): value for key, value in self.credentials['usernames'].items()}
