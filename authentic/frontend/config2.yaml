@@ -14,3 +14,18 @@ credentials:
     zs:
       project:
       - d
+    trihook:
+      project:
+      - a
+      - b
+      - c
+    seven:
+      project:
+        - a
+        - b
+        - c
+    yifan:
+      project:
+        - a
+        - b
+        - c

@@ -94,11 +94,8 @@ class Admin:
                 global train_begin
                 train_begin = 1
                 for percent_complete in range(100):
-                    if self.stop != 1:
-                        time.sleep(0.01)
-                        my_bar.progress(percent_complete + 1)
-                    else:
-                        break
+                    time.sleep(0.01)
+                    my_bar.progress(percent_complete + 1)
                 time.sleep(0.5)
                 # my_bar.empty()
             if cols2.button('stop'):
@@ -146,7 +143,6 @@ class Admin:
             # request
             result = 'OK'
             st.write('result: ', result)
-
     def draw_loss(self):
         # request
         train_loss_list = np.array([])

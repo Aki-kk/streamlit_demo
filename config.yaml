@@ -5,6 +5,21 @@ credentials:
       name: Jingyi Kang
       password: 123
       level: 1
+    trihook:
+      email: xxxx@163.com
+      name: Jianjun Jiang
+      password: 123
+      level: 1
+    seven:
+      email: xxxx@163.com
+      name: Yawen Zhang
+      password: 123
+      level: 1
+    yifan:
+      email: xxxx@163.com
+      name: Yifan He
+      password: 123
+      level: 1
     aki:
       email: 15801386755@163.com
       name: Aki

@@ -1,5 +1,5 @@
 import streamlit as st
-import streamlit_authenticator as stauth
+import frontend.authenticator as stauth
 import yaml
 import os
 from frontend.pages.admin import Admin
