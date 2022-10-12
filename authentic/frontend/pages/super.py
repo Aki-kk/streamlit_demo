@@ -8,14 +8,14 @@ class Super:
     def __init__(self):
         path = os.path.abspath('')
         # 读取table 1
-        with open('E:/ws/project1/config.yaml') as file:
+        with open('./config.yaml') as file:
             self.config1 = yaml.load(file, Loader=SafeLoader)
         self.credentials1 = self.config1['credentials']
         self.credentials1['usernames'] = {key.lower(): value for key, value in self.credentials1['usernames'].items()}
         self.username1 = self.credentials1['usernames']
         # 读取table2
         path = os.path.abspath('')
-        with open('E:/ws/project1/authentic/frontend/config2.yaml') as file:
+        with open('./authentic/frontend/config2.yaml') as file:
             self.config2 = yaml.load(file, Loader=SafeLoader)
             self.credentials2 = self.config2['credentials']
         self.credentials2['usernames'] = {key.lower(): value for key, value in self.credentials2['usernames'].items()}
