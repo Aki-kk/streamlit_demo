@@ -4,48 +4,35 @@ credentials:
       project:
         CNN:
         - a
-        - b
         Segment:
         - aa
-        - bb
     kjy:
       project:
         CNN:
         - a
-        - b
-        - c
         Segment:
         - aa
-        - bb
     seven:
       project:
         CNN:
         - a
-        - b
         Segment:
         - aa
-        - bb
     trihook:
       project:
         CNN:
         - a
-        - b
         Segment:
         - aa
-        - bb
     yifan:
       project:
         CNN:
         - a
-        - b
         Segment:
         - aa
-        - bb
     zs:
       project:
         CNN:
         - a
-        - b
         Segment:
         - aa
-        - bb

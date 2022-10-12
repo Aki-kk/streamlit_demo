@@ -177,7 +177,6 @@ class Admin:
             if cols2.button('stop'):
                 self.trainon = 0
                 st.session_state.trainon = 0
-        # 动态绘制loss曲线
         st.write('──────────────────────────loss曲线──────────────────────────')
         if st.button('clear'):
             self.cookie_manager.delete('loss')
@@ -238,7 +237,7 @@ class Admin:
         if st.button('get img'):
             bytes_data = requests.get(f"http://127.0.0.1:8000/pic")
             st.image(bytes_data.content)
-
+            st.write('result: ', result)
     def draw_loss(self):
         train_loss_list = []
         val_loss_list = []

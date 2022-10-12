@@ -39,7 +39,6 @@ class Authenticate:
         self.cookie_expiry_days = cookie_expiry_days
         self.preauthorized = preauthorized
         self.cookie_manager = stx.CookieManager('log')
-
         if 'name' not in st.session_state:
             st.session_state['name'] = None
         if 'authentication_status' not in st.session_state:
@@ -313,7 +312,7 @@ class Authenticate:
         if preauthorization:
             self.preauthorized['emails'].remove(email)
 
-    def register_user(self, form_name: str, location: str='main', preauthorization=False) -> bool:
+    def register_user(self, form_name: str, location: str='main', preauthorization=True) -> bool:
         """
         Creates a password reset widget.
 
