@@ -19,7 +19,7 @@ class Admin:
     def __init__(self, username: str):
         # ------读取config2
         path = os.path.abspath('')
-        with open('E:/ws/project1/authentic/frontend/config2.yaml') as file:
+        with open('./authentic/frontend/config2.yaml') as file:
             self.config = yaml.load(file, Loader=SafeLoader)
             self.credentials = self.config['credentials']
         self.credentials['usernames'] = {key.lower(): value for key, value in self.credentials['usernames'].items()}
@@ -28,7 +28,7 @@ class Admin:
         self.seg_project = self.credentials['usernames'][self.username]['project']['Segment']
 
         # ------读取config3
-        with open('E:/ws/project1/authentic/frontend/config3.yaml') as file:
+        with open('./authentic/frontend/config3.yaml') as file:
             self.config3 = yaml.load(file, Loader=SafeLoader)
             self.project = self.config3['Project']
         self.project['name'] = {key.lower(): value for key, value in self.project['name'].items()}
@@ -107,11 +107,11 @@ class Admin:
                             self.config['credentials']['usernames'][self.username]['project'][
                                 'CNN'] = self.cnn_project + list(name.split())
                             self.cnn_project = self.cnn_project + list(name.split())
-                            with open("E:/ws/project1/authentic/frontend/config2.yaml", "w", encoding="utf-8") as file:
+                            with open("./authentic/frontend/config2.yaml", "w", encoding="utf-8") as file:
                                 yaml.dump(self.config, file)
                             # 添加信息进config3
                             self.config3['Project']['name'][name] = {'loss': 0, 'test_acc': 0, 'val_acc': 0}
-                            with open("E:/ws/project1/authentic/frontend/config3.yaml", "w", encoding="utf-8") as file:
+                            with open("./authentic/frontend/config3.yaml", "w", encoding="utf-8") as file:
                                 yaml.dump(self.config3, file)
                         else:
                             st.error('文件名不能重复！')
@@ -124,11 +124,11 @@ class Admin:
                             self.config['credentials']['usernames'][self.username]['project'][
                             'Segment'] = self.seg_project + list(name.split())
                             self.seg_project = self.seg_project + list(name.split())
-                            with open("E:/ws/project1/authentic/frontend/config2.yaml", "w", encoding="utf-8") as file:
+                            with open("./authentic/frontend/config2.yaml", "w", encoding="utf-8") as file:
                                 yaml.dump(self.config, file)
                             # 添加信息进config3
                             self.config3['Project']['name'][name] = {'loss': 0, 'test_acc': 0, 'val_acc': 0}
-                            with open("E:/ws/project1/authentic/frontend/config3.yaml", "w",
+                            with open("./authentic/frontend/config3.yaml", "w",
                                       encoding="utf-8") as file:
                                 yaml.dump(self.config3, file)
                         else:
@@ -243,7 +243,7 @@ class Admin:
             self.draw_loss()
             self.get_acc()
             self.config3['Project']['name'][st.session_state.pjtname]['val_acc'] = st.session_state.val_acc
-            with open("E:/ws/project1/authentic/frontend/config3.yaml", "w", encoding="utf-8") as file:
+            with open("./authentic/frontend/config3.yaml", "w", encoding="utf-8") as file:
                 yaml.dump(self.config3, file)
 
         st.write('train accuracy is: ', st.session_state.train_acc)
