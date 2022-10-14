@@ -10,6 +10,7 @@ credentials:
       project:
         CNN:
         - a
+        - b
         Segment:
         - aa
     seven:

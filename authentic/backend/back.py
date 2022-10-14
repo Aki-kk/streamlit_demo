@@ -1,11 +1,16 @@
+import os
+import glob
+import zipfile
 import io
+
 from PIL import Image
-from fastapi import FastAPI
+from fastapi import FastAPI, Response, UploadFile, File
 from fastapi.responses import JSONResponse
+from typing import List
 import uvicorn
 import random
 
-from starlette.responses import FileResponse
+from fastapi.responses import FileResponse
 
 app = FastAPI()
 
@@ -13,28 +18,21 @@ epoch = 0
 loss = [0, 0]
 stop = 0
 
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
 
-# 前端向后端传递参数
-@app.post("/{lr}")
-def get_loss(lr: str):
-    return lr
 # begin train
-@app.get("/train_on")
+@app.post("/train_on")
 def train():
     global trainon
     trainon = 1
 
 # 获取train_acc
-@app.get("/train")
+@app.post("/train")
 def train():
     return JSONResponse(content=0.99,
                         status_code=202,
                         headers={'a':'b'})
 # 获取val_acc
-@app.get("/val")
+@app.post("/val")
 def val():
     return JSONResponse(content=0.98,
                         status_code=202,
@@ -50,7 +48,7 @@ def get_loss():
     else:
         return 0
 trainon = 0
-@app.get("/ask1")
+@app.post("/ask1")
 def get_loss():
     if trainon != 0:
         loss = [random.random(), random.random()]
@@ -61,36 +59,77 @@ def get_loss():
         return JSONResponse(content=0,
                             status_code=202,
                             headers={'a': 'b'})
-@app.get('/pic')
-def get_pic():
-    image_path = 'E:/dataset/001_test/1.jpeg'
-    image = Image.open(image_path)
-    byte_data = image2byte(image)
+# 向服务器发送新建dataset请求
+@app.post("/build/{project}")
+def build_dataset(project: str):
+    path = 'E:/dataset/'+project
+    os.mkdir(path)
+# 向服务器上传图片并保存
+# @app.post("/uploads")
+# async def upload_files(files: List[UploadFile] = File(...)):
+#     return await save_files(files)
 
+@app.post("/upload/{project}/{id}")
+async def upload(project: str, id: int, file: UploadFile = File(...)):
+    try:
+        contents = await file.read()
+        PATH = 'E:/dataset/'+project+'/'+str(id)+'.jpg'
+        with open(PATH, 'wb') as f:
+            f.write(contents)
+    except Exception:
+        return 'error'
+    finally:
+        await file.close()
+
+    return 'success'
+
+# 将该工程下的数据集依次传输回前端
+@app.post('/{project}/{num}')
+def get_pic(project: str, num: int):
+    PATH = 'E:/dataset/' + project
+    image_path = PATH + '/' + str(num) + '.jpg'
     return FileResponse(image_path)
 
-def image2byte(image):
-    '''
-    图片转byte
-    image: 必须是PIL格式
-    image_bytes: 二进制
-    '''
-    # 创建一个字节流管道
-    img_bytes = io.BytesIO()
-    # 将图片数据存入字节流管道， format可以按照具体文件的格式填写
-    image.save(img_bytes, format="JPEG")
-    # 从字节流管道中获取二进制
-    image_bytes = img_bytes.getvalue()
-    return image_bytes
+# 获取服务器下该工程的数据集数量
+@app.post("/{project}")
+def get_pjt(project: str):
+    PATH = 'E:/dataset/'+project
+    pics = os.listdir(PATH)
+    return JSONResponse(content=len(pics),
+                        status_code=202,
+                        headers={'a': 'b'})
+async def save_files(files):
+    for file in files:
+        "type:<class 'coroutine'>"
+        cont = await file.read()
+        with open(f'myfiles/{file.filename}.jpg', 'wb') as f:
+            f.write(cont)
+    return 'success'
 
-def byte2image(byte_data):
-    '''
-    byte转为图片
-    byte_data: 二进制
-    '''
-    image = Image.open(io.BytesIO(byte_data))
-    return image
+def zipfiles(filenames):
+    zip_subdir = "archive"
+    zip_filename = "%s.zip" % zip_subdir
+    # Open StringIO to grab in-memory ZIP contents
+    s = io.BytesIO()
+    # The zip compressor
+    zf = zipfile.ZipFile(s, "w")
+    for fpath in filenames:
+        # Calculate path for file in zip
+        fdir, fname = os.path.split(fpath)
+        zip_path = os.path.join(zip_subdir, fname)
+        # Add file, at correct path
+        zf.write(fpath, zip_path)
+    # Must close zip for all contents to be written
+    zf.close()
+
+    # Grab ZIP file from in-memory, make response with correct MIME-type
+    resp = Response(s.getvalue(), media_type="application/x-zip-compressed")
+    # ..and correct content-disposition
+    resp['Content-Disposition'] = 'attachment; filename=%s' % zip_filename
+
+    return resp
+
 
 if __name__ == '__main__':
-    uvicorn.run(app='back:app', host="127.0.0.1", port=8000, reload=True, debug=True)
+    uvicorn.run(app='back:app', host="10.110.77.190", port=8000, reload=True, debug=True)
 

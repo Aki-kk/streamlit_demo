@@ -16,7 +16,7 @@ st.set_page_config(
 )
 # 当前文件上一级文件夹的绝对路径
 path = os.path.abspath('')
-with open('./config.yaml') as file:
+with open('E:/ws/project1/config.yaml') as file:
     config = yaml.load(file, Loader=SafeLoader)
 
 # Creating the authenticator object
