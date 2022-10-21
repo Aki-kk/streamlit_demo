@@ -1,6 +1,6 @@
 import os
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 import io
 
 from pandas.core.frame import DataFrame
@@ -17,26 +17,10 @@ pre_stop = 0
 
 class Admin:
     def __init__(self, username: str):
-        # ------读取config2
-        path = os.path.abspath('')
-        with open('./authentic/frontend/config2.yaml') as file:
-            self.config = yaml.load(file, Loader=SafeLoader)
-            self.credentials = self.config['credentials']
-        self.credentials['usernames'] = {key.lower(): value for key, value in self.credentials['usernames'].items()}
-        self.username = username
-        self.cnn_project = self.credentials['usernames'][self.username]['project']['CNN']
-        self.seg_project = self.credentials['usernames'][self.username]['project']['Segment']
-
-        # ------读取config3
-        with open('./authentic/frontend/config3.yaml') as file:
-            self.config3 = yaml.load(file, Loader=SafeLoader)
-            self.project = self.config3['Project']
-        self.project['name'] = {key.lower(): value for key, value in self.project['name'].items()}
-
         # ------标志位初始化
         self.trainon = 0
         # ------缓存初始化
-        self.cookie_manager = stx.CookieManager('chart')
+        self.cookie_manager =self.get_manager()
         if 'trainon' not in st.session_state:
             st.session_state.trainon = 0
         if 'pjtname' not in st.session_state:
@@ -53,14 +37,41 @@ class Admin:
             st.session_state.val_acc = 0
         if 'test_acc' not in st.session_state:
             st.session_state.test_acc = 0
+        if 'train_loss_list' not in st.session_state:
+            st.session_state.train_loss_list = []
+        if 'val_loss_list' not in st.session_state:
+            st.session_state.val_loss_list = []
         # if 'uploaded_img' not in st.session_state:
         #     st.session_state.uploaded_img = 0
         # ------变量初始化
-        self.url = 'http://10.110.77.190:8000'
-        self.train_loss_list = np.array([])
-        self.val_loss_list = np.array([])
+        # self.url = 'http://10.110.77.190:8000'
+        self.url = 'http://127.0.0.1:8000'
+        self.path = 'E:/ws/project1'
+        self.train_loss_np = np.array([])
+        self.val_loss_np = np.array([])
         self.train_acc = 0
         self.val_acc = 0
+
+        # ------读取config2
+        path = os.path.abspath('')
+        with open(self.path + '/authentic/frontend/config2.yaml') as file:
+            self.config = yaml.load(file, Loader=SafeLoader)
+            self.credentials = self.config['credentials']
+        self.credentials['usernames'] = {key.lower(): value for key, value in self.credentials['usernames'].items()}
+        self.username = username
+        self.cnn_project = self.credentials['usernames'][self.username]['project']['CNN']
+        self.seg_project = self.credentials['usernames'][self.username]['project']['Segment']
+
+        # ------读取config3
+        with open(self.path + '/authentic/frontend/config3.yaml') as file:
+            self.config3 = yaml.load(file, Loader=SafeLoader)
+            self.project = self.config3['Project']
+        self.project['name'] = {key.lower(): value for key, value in self.project['name'].items()}
+
+    # 建立cookie
+    @st.cache(allow_output_mutation=True)
+    def get_manager(self):
+        return stx.CookieManager('chart')
     def navigation_bar(self):
         st.sidebar.write('⭐管理员模式')
 
@@ -107,11 +118,11 @@ class Admin:
                             self.config['credentials']['usernames'][self.username]['project'][
                                 'CNN'] = self.cnn_project + list(name.split())
                             self.cnn_project = self.cnn_project + list(name.split())
-                            with open("./authentic/frontend/config2.yaml", "w", encoding="utf-8") as file:
+                            with open(self.path+"/authentic/frontend/config2.yaml", "w", encoding="utf-8") as file:
                                 yaml.dump(self.config, file)
                             # 添加信息进config3
                             self.config3['Project']['name'][name] = {'loss': 0, 'test_acc': 0, 'val_acc': 0}
-                            with open("./authentic/frontend/config3.yaml", "w", encoding="utf-8") as file:
+                            with open(self.path+"/authentic/frontend/config3.yaml", "w", encoding="utf-8") as file:
                                 yaml.dump(self.config3, file)
                         else:
                             st.error('文件名不能重复！')
@@ -124,11 +135,11 @@ class Admin:
                             self.config['credentials']['usernames'][self.username]['project'][
                             'Segment'] = self.seg_project + list(name.split())
                             self.seg_project = self.seg_project + list(name.split())
-                            with open("./authentic/frontend/config2.yaml", "w", encoding="utf-8") as file:
+                            with open(self.path+"/authentic/frontend/config2.yaml", "w", encoding="utf-8") as file:
                                 yaml.dump(self.config, file)
                             # 添加信息进config3
                             self.config3['Project']['name'][name] = {'loss': 0, 'test_acc': 0, 'val_acc': 0}
-                            with open("./authentic/frontend/config3.yaml", "w",
+                            with open(self.path+"/authentic/frontend/config3.yaml", "w",
                                       encoding="utf-8") as file:
                                 yaml.dump(self.config3, file)
                         else:
@@ -151,7 +162,7 @@ class Admin:
         st.write('当前验证集精确度：', val_acc)
         st.write('当前测试集精确度：', test_acc)
     def preparing(self):
-        send =0
+        send = 0
         with st.sidebar:
             st.write('───────数据处理────────')
             # 如果本地数据集为空，弹出警告
@@ -168,22 +179,34 @@ class Admin:
             # request
         # --------------------------------主页面----------------------------
         # request 查询本地有无data
-        img_num = requests.post(self.url+f"/{st.session_state.pjtname}").json()
+        img_num = requests.post(self.url+f"/get_num/{st.session_state.pjtname}").json()
         # 向服务器上传数据集
         if send == 1:
             if len(uploaded_imgs) > 0:
+                json_num = 0
+                jpg_num = 0
                 for i in range(len(uploaded_imgs)):
-                    result = requests.post(self.url+f"/upload/{st.session_state.pjtname}/{img_num+i+1}",
-                                            files={'file': uploaded_imgs[i].getvalue()}).json()
-                    if result == 'error':
-                        st.error('上传失败!')
+                    # 判断上传文件类型
+                    if uploaded_imgs[i].name.split('.')[1] == 'json':
+                        json_num += 1
+                        result = requests.post(self.url+f"/upload_json/{st.session_state.pjtname}/{json_num+img_num}",
+                                                files={'file': uploaded_imgs[i].getvalue()}).json()
+                    elif uploaded_imgs[i].name.split('.')[1] == 'jpg':
+                        jpg_num += 1
+                        result = requests.post(self.url + f"/upload_jpg/{st.session_state.pjtname}/{jpg_num+img_num}",
+                                               files={'file': uploaded_imgs[i].getvalue()}).json()
+                    if result == 'error1':
+                        st.error('图片上传失败!')
+                        error = 1
+                    elif result == 'error2':
+                        st.error('json上传失败!')
                         error = 1
                     else:
                         error = 0
                 if error != 1:
                     st.success('上传成功！')
                     # 因上传新数据导致数据集变化，再查询一次
-                    img_num = requests.post(self.url+f"/{st.session_state.pjtname}").json()
+                    img_num = requests.post(self.url+f"/get_num/{st.session_state.pjtname}").json()
             else:
                 st.warning('请选择需要上传的图片！')
         # ------slide显示本地数据集
@@ -193,11 +216,12 @@ class Admin:
             img = requests.post(self.url + f"/{st.session_state.pjtname}/{1}").content
             st.image(img)
         elif img_num > 1:
-            imgs = [[]] * img_num
-            for i in range(img_num):
-                imgs[i] = requests.post(self.url+f"/{st.session_state.pjtname}/{i+1}").content
-            num = st.slider('查看数据集', 1, img_num, 1)
-            st.image(imgs[num-1])
+            # imgs = [[]] * img_num
+            # for i in range(img_num):
+            #     imgs[i] = requests.post(self.url+f"/{st.session_state.pjtname}/{i+1}").content
+            num = st.slider('查看标注后数据集', 1, img_num, 1)
+            imgs = requests.post(self.url + f"/send/{st.session_state.pjtname}/{num}").content
+            st.image(imgs)
         # 增强结束后显示处理后数据集
         pic_num = st.slider('查看图像增强结果', 1, 10, 1)
     def train(self):
@@ -215,40 +239,61 @@ class Admin:
             cols1, cols2 = st.columns(2)
             if cols1.button('begin'):
                 if st.session_state.pjtname in self.project['name']:
-                    requests.post(f"http://127.0.0.1:8000/train_on")
+                    requests.post(self.url+f"/train_on")
                     self.trainon = 1
+                    self.cookie_manager.set('train_on', 1)
                     st.session_state.trainon = 1
-                    # request
-                    time.sleep(1)
+                    st.session_state.train_loss_list = []
+                    st.session_state.val_loss_list = []
                 else:
                     st.error('此工程不存在')
             if cols2.button('stop'):
-                self.trainon = 0
                 st.session_state.trainon = 0
+                self.cookie_manager.set('train_on', 0, key='set2')
+                # 设置cookie
+                self.cookie_manager.set('loss', [st.session_state.train_loss_list, st.session_state.val_loss_list],
+                                        expires_at=datetime.now() + timedelta(days=5))
         st.write('──────────────────────────loss曲线──────────────────────────')
         if st.button('clear'):
-            self.cookie_manager.delete('loss')
-        if self.trainon == 0:
+            self.cookie_manager.delete(cookie='loss')
+            st.session_state.train_loss_list = 0
+            st.session_state.val_loss_list = 0
+        # st.write(self.cookie_manager.get_all())
+        # st.write(self.cookie_manager.get("train_on"))
+        # st.write(self.cookie_manager.get("loss"))
+        cookies = self.cookie_manager.get_all()
+        signal = self.cookie_manager.get("train_on")
+        st.write(signal)
+        if st.session_state.trainon == 0:
+        # if self.cookie_manager.get("train_on") == 0:
+            # st.write(self.cookie_manager.get('loss'))
             chart_data = pd.DataFrame(
-                self.cookie_manager.get(cookie='loss'),
+                self.cookie_manager.get('loss'),
                 index=['train loss', 'val loss']
             )
             chart = st.line_chart(chart_data.T)
-            st.write(chart_data.T)
+            # st.write(cookies)
+            st.write('train accuracy is: ', st.session_state.train_acc)
+            st.write('validation accuracy is: ', st.session_state.val_acc)
+
         # ----------------------------主页面--------------------------
         # 绘制loss
         # 获取acc
         # 在config3中更改val_acc
-        if st.session_state.trainon == 1:
-            self.draw_loss()
-            self.get_acc()
-            self.config3['Project']['name'][st.session_state.pjtname]['val_acc'] = st.session_state.val_acc
-            with open("./authentic/frontend/config3.yaml", "w", encoding="utf-8") as file:
-                yaml.dump(self.config3, file)
+        while True:
+            if st.session_state.trainon == 1:
+                loss = requests.post(self.url + f"/get_loss").json()
+                self.train_acc = requests.post(self.url + f"/train").json()
+                self.val_acc = requests.post(self.url + f"/val").json()
+                self.draw(loss)
+                self.config3['Project']['name'][st.session_state.pjtname]['val_acc'] = st.session_state.val_acc
+                with open(self.path + "/authentic/frontend/config3.yaml", "w", encoding="utf-8") as file:
+                    yaml.dump(self.config3, file)
+            else:
+                break
 
-        st.write('train accuracy is: ', st.session_state.train_acc)
-        # request
-        st.write('validation accuracy is: ', st.session_state.val_acc)
+
+
     def predict(self):
         with st.sidebar:
             st.write('───────测试集─────────')
@@ -292,41 +337,46 @@ class Admin:
         实验
         向后端上传图片
         '''
-    def draw_loss(self):
-        train_loss_list = []
-        val_loss_list = []
-        for i in range(10):
-            loss = requests.get(f"http://127.0.0.1:8000/ask1")
-            loss = loss.json()
-            train_loss = loss[0]
-            val_loss = loss[1]
-            self.train_loss_list = np.append(self.train_loss_list, train_loss)
-            train_loss_list.append(train_loss)
-            self.val_loss_list = np.append(self.val_loss_list, val_loss)
-            val_loss_list.append(val_loss)
-            chart_data = pd.DataFrame(
-                np.array(list(zip(self.train_loss_list, self.val_loss_list))),
-                columns=['train loss', 'val loss']
-            )
-            st.session_state.data = chart_data
-            chart = st.line_chart(st.session_state.data)
-            time.sleep(0.5)
-            chart.empty()
-            # chart.line_chart(st.session_state.data)
-            # 设置cookie
-        self.cookie_manager.set('loss', [train_loss_list, val_loss_list],
-                                expires_at=datetime(year=2025, month=2, day=2))
-        st.session_state.trainon = 0
+    # 绘制loss，刷新acc
+    def draw(self, loss):
+        # loss = requests.post(self.url+f"/get_loss").json()
+        train_loss = loss[0]
+        val_loss = loss[1]
+        self.train_loss_np = np.append(self.train_loss_np, train_loss)
+        self.val_loss_np = np.append(self.val_loss_np, val_loss)
+        st.session_state.train_loss_list.append(train_loss)
+        st.session_state.val_loss_list.append(val_loss)
+        chart_data = pd.DataFrame(
+            np.array(list(zip(self.train_loss_np, self.val_loss_np))),
+            columns=['train loss', 'val loss']
+        )
+        st.session_state.data = chart_data
+        st.session_state.train_acc = self.train_acc
+        st.session_state.val_acc = self.val_acc
+        chart = st.empty()
+        with chart.container():
+            st.write("正在训练，请勿关闭界面...")
+            st.line_chart(st.session_state.data)
+            st.write('train accuracy is: ', st.session_state.train_acc)
+            st.write('validation accuracy is: ', st.session_state.val_acc)
+        time.sleep(2)
+        chart.empty()
+        # chart.line_chart(st.session_state.data)
+        # st.session_state.trainon = 0
 
     def get_acc(self):
-        train_acc = requests.post(self.url+f"/train")
-        self.train_acc = train_acc.json()
-        val_acc = requests.post(self.url+f"/val")
-        self.val_acc = val_acc.json()
+        train_acc = requests.post(self.url+f"/train").json()
+        val_acc = requests.post(self.url+f"/val").json()
 
         # 训练完成后存储一次
         st.session_state.train_acc = self.train_acc
         st.session_state.val_acc = self.val_acc
+        write_acc = st.empty()
+        with write_acc.container():
+            st.write('train accuracy is: ', st.session_state.train_acc)
+            st.write('validation accuracy is: ', st.session_state.val_acc)
+        time.sleep(0.5)
+        write_acc.empty()
     def setup(self):
         self.navigation_bar()
 

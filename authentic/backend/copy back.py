@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse
 from typing import List
 import uvicorn
 import random
-from utility import draw_lable
+from utility import __draw_lable
 from fastapi.responses import FileResponse
 
 app = FastAPI()
@@ -20,33 +20,30 @@ loss = [0, 0]
 stop = 0
 
 # begin augment
-@app.post("/aug_on")
+@app.get("/aug_on")
 def train():
     return 'success'
 # begin train
-@app.post("/train_on")
+@app.get("/train_on")
 def train_begin():
-
     return 'success'
 
 # stop train
-@app.post("/train_stop")
+@app.get("/train_stop")
 def train_stop():
     return 'success'
 # 获取train_acc
 @app.post("/train")
 def train_loss():
-    train_loss = random.random()
-    return JSONResponse(content=train_loss,
+    return JSONResponse(content=0.99,
                         status_code=202,
-                        headers={'a': 'b'})
+                        headers={'a':'b'})
 # 获取val_acc
 @app.post("/val")
 def val_loss():
-    val_loss = random.random()
-    return JSONResponse(content=val_loss,
+    return JSONResponse(content=0.98,
                         status_code=202,
-                        headers={'a': 'b'})
+                        headers={'a':'b'})
 # 刷新数据，前端向后端询问
 @app.post("/ask")
 def get_loss():
@@ -58,12 +55,17 @@ def get_loss():
     else:
         return 0
 trainon = 0
-@app.post("/get_loss")
+@app.post("/ask1")
 def get_loss():
-    loss = [random.random(), random.random()]
-    return JSONResponse(content=loss,
-                        status_code=202,
-                        headers={'a': 'b'})
+    if trainon != 0:
+        loss = [random.random(), random.random()]
+        return JSONResponse(content=loss,
+                            status_code=202,
+                            headers={'a': 'b'})
+    else:
+        return JSONResponse(content=0,
+                            status_code=202,
+                            headers={'a': 'b'})
 # 向服务器发送新建dataset请求
 @app.post("/build/{project}")
 def build_dataset(project: str):
@@ -71,7 +73,6 @@ def build_dataset(project: str):
     os.makedirs(path)
     path = 'E:/dataset/' + project + '/lable'
     os.makedirs(path)
-
 # 向服务器上传图片并保存
 # jpg格式
 @app.post("/upload_jpg/{project}/{id}")
@@ -83,7 +84,7 @@ async def upload(project: str, id: int, file: UploadFile = File(...)):
         with open(image_path, 'wb') as f:
             f.write(contents)
         try:
-            img = draw_lable(image_path, json_path, (0, 222, 120))
+            img = __draw_lable(image_path, json_path, (0, 222, 120))
             PATH = 'E:/dataset/' + project + '/lable/' + str(id) + '.jpg'
             cv2.imwrite(PATH, img)
         except:
@@ -103,7 +104,7 @@ async def upload(project: str, id: int, file: UploadFile = File(...)):
         with open(json_path, 'wb') as f:
             f.write(contents)
         try:
-            img = draw_lable(image_path, json_path, (0, 222, 120))
+            img = __draw_lable(image_path, json_path, (0, 222, 120))
             PATH = 'E:/dataset/'+project+'/lable/'+str(id)+'.jpg'
             cv2.imwrite(PATH, img)
         except:
@@ -115,14 +116,14 @@ async def upload(project: str, id: int, file: UploadFile = File(...)):
     return 'success'
 
 # 将该工程下的数据集依次传输回前端
-@app.post('/send/{project}/{num}')
+@app.post('/{project}/{num}')
 def get_pic(project: str, num: int):
     PATH = 'E:/dataset/' + project + '/lable'
     image_path = PATH + '/' + str(num) + '.jpg'
     return FileResponse(image_path)
 
 # 获取服务器下该工程的数据集数量
-@app.post("/get_num/{project}")
+@app.post("/{project}")
 def get_pjt(project: str):
     PATH = 'E:/dataset/'+project+'/lable'
     pics = os.listdir(PATH)
